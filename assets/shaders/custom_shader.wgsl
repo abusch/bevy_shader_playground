@@ -1,10 +1,24 @@
-// #import bevy_pbr::mesh_types
-// Import the `globals` struct giving access to time
+// This import gives access to 2 global uniform bindings:
+// - `globals`, which contains time information:
+//    - `time: f32`: time since startup in seconds
+//    - `delta_time: f32`: time since the previous frame in seconds
+//    - `frame_count: u32`: the number of frames since startup
+// - `view`, which contains information about the viewport (viewport size, projection matrics, etc...). See https://github.com/bevyengine/bevy/blob/main/crates/bevy_render/src/view/view.wgsl for the current definition.
 #import bevy_sprite::mesh2d_view_bindings
 
+// For convenience, define a `FragmentInput` struct to hold all the inputs that
+// are passed in to our fragment shader, and coming from the default vertex
+// shader.
 struct FragmentInput {
   #import bevy_sprite::mesh2d_vertex_output
 };
+
+struct CustomMaterial {
+  spatial_repetition: f32,
+}
+
+@group(1) @binding(0)
+var<uniform> material: CustomMaterial;
 
 fn sd_circle(p: vec2<f32>, r: f32) -> f32 {
     return length(p) - r;
@@ -24,9 +38,10 @@ fn palette(t: f32) -> vec3<f32> {
     return a + b * cos(6.28318 * (c * t + d));
 }
 
+// This is the entry point of our fragment shader
 @fragment
-fn fragment(
-    in: FragmentInput
+fn my_entry_point(
+    in: FragmentInput,
 ) -> @location(0) vec4<f32> {
     // Make uv be between -1.0 and 1.0, with center in the middle and Y pointing up
     let uv0 = vec2(in.uv.x, 1.0 - in.uv.y) * 2.0 - 1.0;
@@ -35,7 +50,7 @@ fn fragment(
     var final_color = vec3(0.0);
 
     for (var i = 0.0; i < 3.0; i += 1.0) {
-        uv = fract(uv * 1.5) - 0.5;
+        uv = fract(uv * material.spatial_repetition) - 0.5;
         // Distance to origin
         var d = length(uv);
         d *= exp(-length(uv0));
