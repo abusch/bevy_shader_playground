@@ -865,12 +865,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "bevy_shader"
+name = "bevy_shader_playground"
 version = "0.1.0"
 dependencies = [
  "bevy",
  "bevy-inspector-egui",
- "bevy_egui",
 ]
 
 [[package]]
